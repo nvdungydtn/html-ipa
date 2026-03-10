@@ -10,19 +10,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Create project
-        run: |
-          mkdir app
-          cd app
-          echo "placeholder"
-
       - name: Create IPA
         run: |
           mkdir build
           zip -r build/app.ipa web
 
       - name: Upload IPA
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ipa
           path: build/app.ipa
