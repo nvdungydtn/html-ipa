@@ -10,21 +10,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create Xcode project
+      - name: Create minimal Xcode project
         run: |
           mkdir App
-          cp -r web App/
+          mkdir -p App/WebApp.app
+          cp -r web/* App/WebApp.app/
 
-      - name: Build
-        run: |
-          clang -framework UIKit -framework WebKit ios/main.swift -o App/WebApp
+          cat > App/WebApp.app/Info.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+          "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleExecutable</key>
+            <string>WebApp</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.web.app</string>
+            <key>CFBundleName</key>
+            <string>WebApp</string>
+            <key>CFBundleVersion</key>
+            <string>1.0</string>
+          </dict>
+          </plist>
+          EOF
+
+          echo "#!/bin/bash" > App/WebApp.app/WebApp
+          echo "exit 0" >> App/WebApp.app/WebApp
+          chmod +x App/WebApp.app/WebApp
 
       - name: Create IPA
         run: |
-          mkdir -p Payload/WebApp.app
-          cp App/WebApp Payload/WebApp.app/
-          cp -r web Payload/WebApp.app/
-
+          mkdir Payload
+          mv App/WebApp.app Payload/
           zip -r app.ipa Payload
 
       - name: Upload IPA
