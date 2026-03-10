@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trợ lý Y khoa AI by dr.dungtiensinh</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ... CSS giữ nguyên ... */
+    :root{--line:#e5e7eb}
+    /* ===== THAY ĐỔI GIAO DIỆN: Nền xanh nhạt ===== */
+    body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,'Apple Color Emoji','Segoe UI Emoji'; background-color: #eff6ff; color: #1f2937;} /* Nền xanh blue-50 */
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace}
+    .probbar{height:6px; background:var(--line); border-radius:4px; overflow:hidden}
+    .probbar>div{height:100%;background:linear-gradient(90deg,#60a5fa,#ef4444)}
+    .tab-btn{transition: background-color 0.2s, color 0.2s;}
+    .tab-btn[aria-selected="true"]{background:#1d4ed8;color:white}
+    .tab-btn[aria-selected="false"]:hover{background:#eff6ff}
+    .chip{font-size:12px;padding:2px 8px;border-radius:9999px;background:#e0e7ff;color:#1e3a8a}
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    .section-summary {
+        font-size: 1.125rem; font-weight: 600; border-bottom: 1px solid var(--line);
+        padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+        color: #1d4ed8;
+    }
+    .section-summary::after { content: '▼'; font-size: 0.75rem; transition: transform 0.2s; }
+    details[open] > .section-summary::after { transform: rotate(180deg); }
+    .kbd{border:1px solid var(--line);padding:2px 6px;border-radius:6px;background:#fafafa}
+    .form-input{border:1px solid var(--line); background-color: #f9fafb; padding: 8px; border-radius: 6px; width:100%;}
+    .form-input:focus{outline:2px solid #3b82f6; border-color:transparent}
+    .btn-base{padding: 8px 12px; border-radius: 6px; border:1px solid var(--line); background-color:white; transition: background-color 0.2s; cursor: pointer;}
+    .btn-base:hover{background-color:#f9fafb}
+    .btn-primary{background-color:#2563eb; color:white; border:none}
+    .btn-primary:hover{background-color:#1d4ed8}
+    .btn-primary:disabled{background-color:#9ca3af; opacity:0.7; cursor: not-allowed;}
+    .role-chip {
+      display: inline-flex; align-items: center; padding: 2px 8px; font-size: 12px; font-weight: 500;
+      background-color: #e0e7ff; color: #1e3a8a; border-radius: 9999px; margin: 2px;
+    }
+    .role-chip-remove { margin-left: 6px; cursor: pointer; font-weight: bold; color: #3730a3; }
+    .output-tab-btn {
+        padding: 6px 12px; font-size: 0.875rem; font-weight: 500; color: #4b5563;
+        border-bottom: 2px solid transparent; cursor: pointer;
+    }
+    .output-tab-btn[aria-selected="true"] { color: #2563eb; border-bottom-color: #2563eb; }
+    .toggle-btn {
+      padding: 4px 10px; border-radius: 6px; font-weight: 500; font-size: 0.875rem;
+      background-color: #e5e7eb; color: #374151;
+      transition: all 0.2s; border: none; cursor: pointer;
+    }
+    .toggle-btn[aria-pressed="true"] { background-color: #2563eb; color: white; }
+     
+    /* Tối ưu card khi xuống PDF (giống file tuned) */
+    #rendered > div {
+      page-break-inside: avoid;
+      margin-bottom: 12px;
+      /* Styling chi tiết sẽ được ghi đè bởi prepareExportNode, nhưng giữ lại để tương thích */
+    }
+  </style>
+</head>
+<body class="bg-blue-50 text-gray-800"> <div class="max-w-7xl mx-auto p-4">
+    
+    <header class="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <div class="flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+           <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.624l-.259 1.035-.259-1.035a3.375 3.375 0 00-2.456-2.456L13 17.25l1.035-.259a3.375 3.375 0 002.456-2.456l.259-1.035.259 1.035a3.375 3.375 0 002.456 2.456L21 17.25l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+        </svg>
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600">Trợ lý Y khoa AI</h1>
+          <p class="text-gray-600">by dr.dungtiensinh ver 1.1</p>
+        </div>
+      </div>
+      <div>
+        <button id="btnAbout" class="btn-base">💡 Giới thiệu</button>
+      </div>
+    </header>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="lg-col-span-1 bg-white rounded-xl shadow p-4 space-y-5">
+
+        <details> 
+            <summary class="section-summary text-blue-600">I. Hành chính</summary>
+            <div class="pt-4 space-y-3">
+                 <div class="grid grid-cols-2 gap-3">
+                    <label class="text-sm col-span-2">Họ và tên <input id="ho_ten" class="mt-1 form-input" placeholder="Nguyễn Văn A"></label>
+                    <label class="text-sm">Tuổi <input id="tuoi" type="number" min="0" class="mt-1 form-input" placeholder="50"></label>
+                    <label class="text-sm">Giới tính
+                    <select id="gioi_tinh" class="mt-1 form-input">
+                        <option>Nam</option><option>Nữ</option>
+                    </select>
+                    </label>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="text-sm">Cân nặng (kg)<input id="cn" type="number" step="0.1" class="mt-1 form-input"></label>
+                    <label class="text-sm">Chiều cao (cm)<input id="cc" type="number" step="0.1" class="mt-1 form-input"></label>
+                    <label class="text-sm">BMI
+                    <input id="bmi" class="mt-1 form-input bg-gray-100" readonly>
+                    </label>
+                </div>
+                <div class="text-xs text-gray-500">BMI tự tính khi nhập cân nặng/chiều cao.</div>
+            </div>
+        </details>
+
+        <details> 
+            <summary class="section-summary text-blue-600">II. Chuyên môn</summary>
+            <div class="pt-4 space-y-3">
+                 <label class="text-sm">1) Lý do vào viện
+                    <input id="ly_do_vao_vien" class="mt-1 form-input">
+                </label>
+                <label class="text-sm">2) Bệnh sử
+                    <textarea id="benh_su" rows="3" class="mt-1 form-input"></textarea>
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="text-sm col-span-1">Tiền sử (bản thân)
+                    <textarea id="ts_bt" rows="2" class="mt-1 form-input"></textarea>
+                    </label>
+                    <label class="text-sm col-span-1">Tiền sử (gia đình)
+                    <textarea id="ts_gd" rows="2" class="mt-1 form-input"></textarea>
+                    </label>
+                </div>
+                <div>
+                    <span class="text-sm block mb-1">3) Dấu hiệu sinh tồn</span>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <input id="mach" class="form-input" placeholder="Mạch (l/p)">
+                        <input id="nhiet_do" class="form-input" placeholder="Nhiệt độ (°C)">
+                        <input id="huyet_ap" class="form-input" placeholder="HA (mmHg) ví dụ 120/70">
+                        <input id="nhip_tho" class="form-input" placeholder="Nhịp thở (l/p)">
+                        <input id="spo2" class="form-input" placeholder="SpO₂ (%)">
+                    </div>
+                </div>
+                <label class="text-sm">4) Khám toàn thân
+                    <textarea id="kham_tt" rows="2" class="mt-1 form-input"></textarea>
+                </label>
+                <label class="text-sm">5) Khám các cơ quan
+                    <textarea id="kham_cq" rows="2" class="mt-1 form-input"></textarea>
+                </label>
+                <label class="text-sm">6) Cận lâm sàng
+                    <textarea id="cls" rows="3" class="mt-1 form-input" placeholder="VD: Troponin I 120 ng/L (ref <14). ECG: ST↑ V2-V4..."></textarea>
+                </label>
+                <label class="text-sm">7) Tóm tắt bệnh án
+                    <textarea id="tom_tat" rows="3" class="mt-1 form-input"></textarea>
+                </label>
+                <div>
+                    <label class="text-sm block mb-1">Đính kèm (ảnh/PDF – không lưu)</label>
+                    <input id="attach" type="file" multiple accept="image/*,.pdf" class="block w-full text-sm">
+                    <div id="attachList" class="mt-2 text-xs space-y-1"></div>
+                </div>
+            </div>
+        </details>
+
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button id="btnCopyPromptAndSave" class="col-span-2 btn-base btn-primary">📋 Sao chép Prompt & Lưu</button>
+          <button id="btnExportTxtOnly" class="btn-base">📄 Xuất TXT</button>
+          <button id="btnSearch" class="btn-base">🔍 Tra cứu</button>
+          <button id="resetAll" class="col-span-2 btn-base">🧹 Xoá Form</button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-2 space-y-4">
+        <div class="bg-white rounded-xl shadow p-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+            <div class="flex items-center gap-4">
+              <span class="text-sm font-semibold text-gray-700">Kiểu đầu ra Prompt:</span>
+              <div id="output-mode-toggle" class="flex items-center gap-1">
+                 <button class="toggle-btn" data-value="json" aria-pressed="true">JSON</button>
+                 <button class="toggle-btn" data-value="natural" aria-pressed="false">Tự nhiên</button>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <button id="btnExportJSON" class="btn-base">🧾 Xuất Dữ liệu JSON</button>
+              <button id="btnImportJSON" class="btn-base">📥 Nhập Dữ liệu JSON</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+            <label for="role-select-trigger" class="text-sm font-semibold text-gray-700">Chọn vai trò sẽ gộp vào prompt:</label>
+            <div class="md:col-span-2 relative" id="role-select-wrapper">
+              <div id="role-select-trigger" class="form-input min-h-[40px] flex flex-wrap gap-1 items-center cursor-pointer">
+                <span id="role-select-placeholder" class="text-gray-400">Bấm để chọn vai trò...</span>
+              </div>
+              <div id="role-select-dropdown" class="hidden absolute z-10 w-full bg-white shadow-lg border rounded-md mt-1 p-2 space-y-1 text-sm">
+                <div>
+                  <label class="w-full inline-flex items-center gap-2 p-1 rounded hover:bg-gray-100">
+                    <input type="checkbox" id="role-select-all"> <b>Chọn tất cả</b>
+                  </label>
+                </div>
+                <hr>
+                <div><label class="w-full inline-flex items-center gap-2 p-1 rounded hover:bg-gray-100"><input class="roleChk" type="checkbox" value="r1" checked> 1) Tóm tắt & CĐPB (DDx)</label></div>
+                <div><label class="w-full inline-flex items-center gap-2 p-1 rounded hover:bg-gray-100"><input class="roleChk" type="checkbox" value="r2" checked> 2) Hỗ trợ CĐ (DDS)</label></div>
+                <div><label class="w-full inline-flex items-center gap-2 p-1 rounded hover:bg-gray-100"><input class="roleChk" type="checkbox" value="r3" checked> 3) Điều trị</label></div>
+                <div><label class="w-full inline-flex items-center gap-2 p-1 rounded hover:bg-gray-100"><input class="roleChk" type="checkbox" value="r4" checked> 4) Tiên lượng</label></div>
+                <div><label class="w-full inline-flex items-center gap-2 p-1 rounded hover:bg-gray-100"><input class="roleChk" type="checkbox" value="r5" checked> 5) Kế hoạch</label></div>
+                <div><label class="w-full inline-flex items-center gap-2 p-1 rounded hover:bg-gray-100"><input class="roleChk" type="checkbox" value="r6" checked> 6) Giáo dục</label></div>
+                <div><label class="w-full inline-flex items-center gap-2 p-1 rounded hover:bg-gray-100"><input class="roleChk" type="checkbox" value="r7" checked> 7) Checklist</label></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex gap-4" id="output-tab-nav">
+                <button class="output-tab-btn" data-panel="panel-ai-results" aria-selected="true">Xem Kết quả (Paste)</button>
+                <button class="output-tab-btn" data-panel="panel-prompt" aria-selected="false">Prompt đã tạo</button>
+                <button class="output-tab-btn" data-panel="panel-schema" aria-selected="false">Schema (nâng cao)</button>
+            </nav>
+        </div>
+
+        <div id="panel-ai-results" class="output-panel">
+            <div class="bg-white rounded-xl shadow p-4">
+                <div class="flex items-center justify-between border-b pb-2">
+                    <h2 class="text-lg font-semibold">Hiển thị kết quả AI (Dán vào đây)</h2>
+                    <div class="text-sm flex items-center gap-1" id="view-mode-toggle">
+                       <button class="toggle-btn" data-value="json" aria-pressed="true">JSON</button>
+                       <button class="toggle-btn" data-value="free" aria-pressed="false">Tự nhiên</button>
+                    </div>
+                </div>
+
+                <div id="viewJSON" class="mt-3">
+                    <textarea id="aiJSON" rows="10" class="mono w-full p-3 form-input" placeholder='Dán kết quả JSON từ AI vào đây để render...'></textarea>
+                     <div class="mt-2 flex flex-wrap gap-2">
+                        <button id="btnRender" class="btn-base btn-primary">▶️ Render</button>
+                        <button id="btnClearJsonInput" class="btn-base">🗑️ Xoá</button>
+                        <button id="btnExportPdf" class="btn-base">🖨️ Xuất PDF Kết quả</button> 
+                        <button id="btnPreviewPdf" class="btn-base">👁️ Xem trước PDF</button>
+                    </div>
+                     <div id="rendered" class="mt-4 grid md:grid-cols-2 gap-3"></div>
+                </div>
+
+                <div id="viewFree" class="hidden mt-3">
+                    <textarea id="aiFree" rows="8" class="w-full p-3 form-input" placeholder='Dán báo cáo tự nhiên từ AI vào đây...'></textarea>
+                    <div class="mt-2 flex gap-2">
+                        <button id="btnShowFree" class="btn-base btn-primary">▶️ Hiển thị</button>
+                        <button id="btnClearFreeInput" class="btn-base">🗑️ Xoá</button>
+                    </div>
+                    <div id="freeOut" class="mt-3 p-3 bg-gray-50 rounded border"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="panel-prompt" class="output-panel hidden">
+             <div class="bg-white rounded-xl shadow p-4">
+                <div class="flex justify-between items-center mb-2">
+                     <h2 class="text-lg font-semibold">Prompt đã tạo (đã ẩn danh)</h2>
+                     <button id="btnCopyPromptTab" class="btn-base">📋 Sao chép Prompt</button>
+                </div>
+                <textarea id="promptBox" class="mono w-full h-96 p-3 form-input" readonly placeholder="Prompt sẽ được tạo ở đây..."></textarea>
+                <p class="text-xs text-gray-500 mt-2">Sao chép nội dung trên và dán vào ứng dụng AI của bạn.</p>
+             </div>
+        </div>
+
+        <div id="panel-schema" class="output-panel hidden">
+            <div id="role-schema-viewer" class="bg-white rounded-xl shadow p-0 overflow-hidden">
+                <div class="flex flex-wrap gap-1 p-2 border-b">
+                    <button class="tab-btn px-3 py-2 rounded-md" data-tab="tab1" aria-selected="true">1) Tóm tắt & CĐPB (DDx)</button> 
+                    <button class="tab-btn px-3 py-2 rounded-md" data-tab="tab2">2) Hỗ trợ CĐ (DDS)</button> 
+                    <button class="tab-btn px-3 py-2 rounded-md" data-tab="tab3">3) Điều trị</button>
+                    <button class="tab-btn px-3 py-2 rounded-md" data-tab="tab4">4) Tiên lượng</button>
+                    <button class="tab-btn px-3 py-2 rounded-md" data-tab="tab5">5) Theo dõi</button>
+                    <button class="tab-btn px-3 py-2 rounded-md" data-tab="tab6">6) Giáo dục</button>
+                    <button class="tab-btn px-3 py-2 rounded-md" data-tab="tab7">7) Checklist</button>
+                </div>
+
+                <div id="panels" class="p-4 space-y-3">
+                    <section id="tab1" class="space-y-3">
+                        <h3 class="font-semibold">Vai trò 1: Tóm tắt & Chẩn đoán phân biệt (DDx)</h3> 
+                        <div class="text-xs text-gray-600">Xuất JSON: <span class="chip">summary</span>, <span class="chip">differential_diagnosis[]</span>, <span class="chip">suggested_scores[]</span>...</div> 
+                        <textarea id="schema_r1" class="mono w-full p-3 form-input" rows="10" readonly></textarea>
+                    </section>
+                    <section id="tab2" class="hidden space-y-3">
+                        <h3 class="font-semibold">Vai trò 2: Hỗ trợ Chẩn đoán (DDS)</h3> 
+                        <div class="text-xs text-gray-600">Xuất JSON: <span class="chip">dds_diagnoses[]</span>...</div>
+                        <textarea id="schema_r2" class="mono w-full p-3 form-input" rows="8" readonly></textarea>
+                    </section>
+                    <section id="tab3" class="hidden space-y-3">
+                        <h3 class="font-semibold">Vai trò 3: Điều trị chuẩn hoá (tham khảo)</h3>
+                        <div class="text-xs text-gray-600">Xuất JSON: <span class="chip">treatment_plan</span></div>
+                        <textarea id="schema_r3" class="mono w-full p-3 form-input" rows="8" readonly></textarea>
+                    </section>
+                    <section id="tab4" class="hidden space-y-3">
+                        <h3 class="font-semibold">Vai trò 4: Tiên lượng & thang điểm</h3>
+                        <div class="text-xs text-gray-600">Xuất JSON: <span class="chip">general_prognosis</span>, <span class="chip">prognosis_and_scores[]</span></div> 
+                        <textarea id="schema_r4" class="mono w-full p-3 form-input" rows="12" readonly></textarea> 
+                    </section>
+                    <section id="tab5" class="hidden space-y-3">
+                        <h3 class="font-semibold">Vai trò 5: Kế hoạch theo dõi</h3>
+                        <div class="text-xs text-gray-600">Xuất JSON: <span class="chip">follow_up_plan</span></div>
+                        <textarea id="schema_r5" class="mono w-full p-3 form-input" rows="6" readonly></textarea>
+                    </section>
+                    <section id="tab6" class="hidden space-y-3">
+                        <h3 class="font-semibold">Vai trò 6: Giáo dục & tư vấn bệnh nhân</h3>
+                        <div class="text-xs text-gray-600">Xuất JSON: <span class="chip">patient_education</span></div>
+                        <textarea id="schema_r6" class="mono w-full p-3 form-input" rows="6" readonly></textarea>
+                    </section>
+                    <section id="tab7" class="hidden space-y-3">
+                        <h3 class="font-semibold">Vai trò 7: Checklist an toàn & cờ đỏ</h3>
+                        <div class="text-xs text-gray-600">Xuất JSON: <span class="chip">case_specific_safety_review</span></div> 
+                        <textarea id="schema_r7" class="mono w-full p-3 form-input" rows="6" readonly></textarea>
+                    </section>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div id="searchModal" class="hidden fixed inset-0 bg-black/40 z-50">
+      <div class="bg-white rounded-xl shadow max-w-xl mx-auto mt-24 p-4">
+        <h3 class="font-semibold text-lg">Tra cứu bệnh án (LocalStorage)</h3>
+        <input id="searchInput" class="mt-2 w-full form-input" placeholder="Nhập tên bệnh nhân...">
+        <div id="searchList" class="mt-3 max-h-80 overflow-y-auto space-y-2"></div>
+        <div class="text-right mt-3">
+          <button id="closeSearch" class="btn-base">Đóng</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="aboutModal" class="hidden fixed inset-0 bg-black/40 z-50">
+      <div class="bg-white rounded-xl shadow max-w-2xl mx-auto mt-24 p-5">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-lg text-blue-700">Giới thiệu Trợ lý Y khoa AI (v1.1)</h3>
+            <button id="closeAbout" class="text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+        </div>
+        <div class="text-sm space-y-3 text-gray-700 max-h-[70vh] overflow-y-auto pr-2">
+          <p>Chào mừng bạn đến với <strong>Trợ lý Y khoa AI</strong>, một công cụ được thiết kế để hỗ trợ các chuyên gia y tế trong việc tạo, quản lý và phân tích bệnh án.</p>
+          <p>Ứng dụng này <strong>không phải là một mô hình AI</strong>. Thay vào đó, nó là một "giao diện" thông minh giúp bạn:</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>Tạo Prompt có cấu trúc:</strong> Dễ dàng nhập thông tin bệnh nhân (hành chính, bệnh sử, CLS) và ứng dụng sẽ tự động tạo ra một "prompt" (câu lệnh) theo định dạng JSON hoặc văn bản tự nhiên.</li>
+            <li><strong>Gửi đến AI của bạn:</strong> Bạn có thể sao chép prompt này và dán vào bất kỳ mô hình AI nào bạn đang sử dụng (ví dụ: ChatGPT, Gemini, Claude, v.v.).</li>
+            <li><strong>Render kết quả JSON:</strong> Khi AI trả về kết quả dưới dạng JSON (theo schema được cung cấp), hãy dán nó trở lại vào tab "Xem Kết quả". Ứng dụng sẽ "render" JSON thô thành một báo cáo lâm sàng đẹp mắt, có cấu trúc, với các thẻ, biểu đồ và màu sắc.</li>
+            <li><strong>Lưu trữ & Xuất file:</strong> Dữ liệu được lưu an toàn trên trình duyệt của bạn (LocalStorage). Bạn có thể tra cứu, xuất file PDF hoặc TXT.</li>
+          </ul>
+          <p class="font-semibold">Bảo mật:</p>
+          <p>Mọi dữ liệu bạn nhập <strong>chỉ được lưu trữ trên máy tính cá nhân của bạn</strong> (trong LocalStorage của trình duyệt). Không có dữ liệu nào được gửi đến bất kỳ máy chủ bên ngoài nào, đảm bảo an toàn và bảo mật thông tin bệnh nhân.</p>
+          <p class="italic text-xs text-gray-500">Tác giả: dr.dungtiensinh. Phiên bản 1.1.</p>
+        </div>
+        <div class="text-right mt-4">
+          <button id="closeAboutBtn" class="btn-base btn-primary">Đã hiểu</button>
+        </div>
+      </div>
+    </div>
+    </div>
+
+  <script>
+    const $ = (id)=>document.getElementById(id);
+    
+    // ===== CẬP NHẬT SCHEMA (R1-R7) =====
+    const roleSchemaFragments = { 
+       r1: `
+  "summary": "Tóm tắt ≤120 từ",
+  "overall_severity": {
+      "level": "Mức độ (Nhẹ/Trung bình/Nghiêm trọng)",
+      "reason": "Lý do đánh giá mức độ"
+  },
+  "assumed_context": "Bối cảnh giả định (Cấp cứu / Ngoại trú / Nội trú)",
+  "differential_diagnosis": [
+    {
+      "label": "Tên bệnh",
+      "likelihood": 0.0,
+      "evidence_for": ["Các dữ kiện lâm sàng/CLS ủng hộ"],
+      "evidence_against": ["Các dữ kiện chống lại hoặc không phù hợp"]
+    }
+  ],
+  "red_flags": ["Các dấu hiệu cờ đỏ khẩn cấp"],
+  "missing_data": ["Dữ liệu còn thiếu để chẩn đoán xác định (chung)"], 
+  "recommended_tests": ["Các cận lâm sàng nên làm thêm (liên kết với missing_data)"],
+  "suggested_scores": ["Tên các thang điểm khác có thể phù hợp (chỉ liệt kê tên)"], 
+  "management_suggestions": ["Hướng xử trí ban đầu tham khảo (phù hợp với bối cảnh và mức độ nặng)"],
+  "disclaimer": "Kết quả chỉ hỗ trợ, không thay thế quyết định của bác sĩ."
+`,
+      r2: `
+  "dds_diagnoses": [{"label":"Tên bệnh","prob":0.0,"why":["dữ kiện 1"],"guideline_refs":["nguồn"]}],
+  "most_critical_diagnosis_to_rule_out": "Chẩn đoán nguy hiểm nhất cần loại trừ (dù xác suất thấp)",
+  "differentiation_plan": ["Kế hoạch/xét nghiệm để phân biệt các chẩn đoán hàng đầu"],
+  "dds_overall_confidence": 0.0
+`,
+      r3: `
+  "treatment_plan": {
+    "context": "Bối cảnh (cấp cứu / duy trì)",
+    "treatment_goals": ["Mục tiêu chính của điều trị (VD: Ổn định huyết động, Giảm triệu chứng)"],
+    "non_pharmacological_interventions": ["Các can thiệp không dùng thuốc (VD: Thở oxy, Nằm đầu cao)"],
+    "pharmacological_recommendations": [
+      {"drug": "Tên thuốc", "dose": "Liều", "route": "Đường dùng", "frequency": "Tần suất", "duration": "Thời gian"}
+    ],
+    "alternative_options": ["Các lựa chọn thay thế/bậc hai (VD: Nếu dị ứng Penicillin...)"],
+    "contraindications": ["Chống chỉ định chính"],
+    "monitoring_adr": ["Theo dõi hiệu quả/ADR"],
+    "adjustments": "Ghi chú chỉnh liều (thận/gan/tuổi)"
+  }
+`,
+      r4: `
+  "general_prognosis": { 
+      "short_term": "Tiên lượng ngắn hạn (VD: trong đợt điều trị này)", 
+      "long_term": "Tiên lượng dài hạn (VD: sau xuất viện, chất lượng sống)" 
+  },
+  "prognosis_and_scores": [
+    {
+      "score_name": "Tên thang điểm (VD: DECAF)",
+      "purpose": "Mục đích/Ý nghĩa lâm sàng của thang điểm",
+      "reference": "Nguồn/Bài báo gốc của thang điểm (VD: DECAF Score, Thorax 2012)",
+      "components": [{"component": "Chữ cái viết tắt", "description": "Mô tả ngắn gọn thành phần"}],
+      "score_range_interpretation": "Khoảng điểm (VD: 0-6) và ngưỡng phân loại nguy cơ", 
+      "calculation_possible": true, 
+      "calculated_score": 0, 
+      "risk_category": "Phân loại nguy cơ (VD: Thấp, Trung bình, Cao)",
+      "score_implication": "Ý nghĩa/Tiên lượng cụ thể từ điểm số (VD: 30% nguy cơ tử vong 30 ngày)",
+      "missing_data_detailed": [{"component": "Chữ cái", "data_needed": "Dữ liệu cụ thể cần thiết"}], 
+      "suggestions_for_missing": ["Đề xuất cách lấy dữ liệu còn thiếu"] 
+    }
+  ]
+`,
+      r5: `
+  "follow_up_plan": {
+    "inpatient_monitoring": {
+      "parameters": ["Dấu hiệu/chỉ số cần kiểm tra nội trú"],
+      "frequency": "Tần suất theo dõi (VD: mỗi 4 giờ)",
+      "purpose": "Mục đích theo dõi (VD: Phát hiện sớm...)"
+    },
+    "outpatient_follow_up": {
+      "revisit_schedule": "Tần suất tái khám/xét nghiệm ngoại trú",
+      "tests_on_revisit": ["Các xét nghiệm cần làm khi tái khám"],
+      "referral_criteria": "Tiêu chí chuyển tuyến/nhập viện"
+    }
+  }
+`,
+      r6: `
+  "patient_education": {
+    "disease_info": "Thông tin bệnh, lộ trình điều trị",
+    "medication_guidance": "Hướng dẫn dùng thuốc",
+    "lifestyle_modifications": ["Dinh dưỡng", "Vận động", "Cai thuốc lá/rượu"],
+    "expected_recovery_timeline": "Tiến trình hồi phục dự kiến (VD: Sốt giảm sau 2-3 ngày)",
+    "when_to_return": "Dấu hiệu cần quay lại viện ngay",
+    "teach_back_questions": ["Các câu hỏi 'teach-back' để kiểm tra BN đã hiểu (VD: Bạn nhắc lại 3 dấu hiệu nguy hiểm?)"]
+  }
+`,
+      r7: `
+  "case_specific_safety_review": {
+    "allergy_check": "Kiểm tra chéo dị ứng (BN có dị ứng X, thuốc đề xuất Y có an toàn không?)",
+    "interaction_check": "Kiểm tra tương tác thuốc (giữa các thuốc đề xuất và thuốc nền)",
+    "renal_adjustment_check": "Kiểm tra chỉnh liều (BN có suy thận/gan không? Liều đã phù hợp chưa?)",
+    "critical_omissions_check": "Kiểm tra thiếu sót (VD: BN có loét DD, đã có PPI chưa? BN có rung nhĩ, đã có chống đông chưa?)"
+  }
+`
+     };
+     
+    // ===== CẬP NHẬT TAB HIỂN THỊ SCHEMA (R1-R7) =====
+    const roleTabDisplay = { 
+        r1: JSON.stringify(JSON.parse(`{
+            "summary": "",
+            "overall_severity": { "level": "", "reason": "" },
+            "assumed_context": "",
+            "differential_diagnosis": [
+                { "label": "", "likelihood": 0.0, "evidence_for": [], "evidence_against": [] }
+            ],
+            "red_flags": [],
+            "missing_data": [],
+            "recommended_tests": [],
+            "suggested_scores": [],
+            "management_suggestions": [],
+            "disclaimer": ""
+        }`), null, 2), 
+        r2: JSON.stringify(JSON.parse(`{
+            "dds_diagnoses": [{"label":"","prob":0.0,"why":[],"guideline_refs":[]}],
+            "most_critical_diagnosis_to_rule_out": "",
+            "differentiation_plan": [],
+            "dds_overall_confidence": 0.0
+        }`), null, 2),
+        r3: JSON.stringify(JSON.parse(`{
+            "treatment_plan": {
+                "context": "",
+                "treatment_goals": [],
+                "non_pharmacological_interventions": [],
+                "pharmacological_recommendations": [
+                    {"drug": "", "dose": "", "route": "", "frequency": "", "duration": ""}
+                ],
+                "alternative_options": [],
+                "contraindications": [],
+                "monitoring_adr": [],
+                "adjustments": ""
+            }
+        }`), null, 2),
+        r4: JSON.stringify(JSON.parse(`{
+            "general_prognosis": {"short_term":"","long_term":""},
+            "prognosis_and_scores": [{
+                "score_name":"",
+                "purpose":"",
+                "reference": "",
+                "components":[],
+                "score_range_interpretation":"",
+                "calculation_possible":true,
+                "calculated_score":0,
+                "risk_category":"",
+                "score_implication": "",
+                "missing_data_detailed":[],
+                "suggestions_for_missing":[]
+            }]
+        }`), null, 2), 
+        r5: JSON.stringify(JSON.parse(`{
+            "follow_up_plan": {
+                "inpatient_monitoring": {
+                    "parameters": [],
+                    "frequency": "",
+                    "purpose": ""
+                },
+                "outpatient_follow_up": {
+                    "revisit_schedule": "",
+                    "tests_on_revisit": [],
+                    "referral_criteria": ""
+                }
+            }
+        }`), null, 2),
+        r6: JSON.stringify(JSON.parse(`{
+            "patient_education": {
+                "disease_info": "",
+                "medication_guidance": "",
+                "lifestyle_modifications": [],
+                "expected_recovery_timeline": "",
+                "when_to_return": "",
+                "teach_back_questions": []
+            }
+        }`), null, 2),
+        r7: JSON.stringify(JSON.parse(`{
+            "case_specific_safety_review": {
+                "allergy_check": "",
+                "interaction_check": "",
+                "renal_adjustment_check": "",
+                "critical_omissions_check": ""
+            }
+        }`), null, 2)
+    };
+    
+    // ===== BẮT ĐẦU THAY ĐỔI =====
+    // Autos
+    const fields = ["ho_ten","tuoi","gioi_tinh","cn","cc","ly_do_vao_vien","benh_su","ts_bt","ts_gd","mach","nhiet_do","huyet_ap","nhip_tho","spo2","kham_tt","kham_cq","cls","tom_tat"];
+    fields.forEach(id=>$(id)?.addEventListener("input",()=>{ 
+      if(id==="cn"||id==="cc") calcBMI(); 
+      // saveDraft(); // ĐÃ VÔ HIỆU HOÁ ĐỂ CHỈ LƯU KHI BẤM NÚT
+      buildPrompt(); 
+    }));
+    // ===== KẾT THÚC THAY ĐỔI =====
+    
+    function calcBMI(){ /* ... giữ nguyên ... */ 
+      const w=parseFloat($("cn").value||""); const hcm=parseFloat($("cc").value||"");
+      if(w>0 && hcm>0){ const h=hcm/100; $("bmi").value=(w/(h*h).toFixed(1)); } else {$("bmi").value="";}
+    }
+
+
+    // ===== LOGIC CHO DROPDOWN ĐA LỰA CHỌN =====
+    const roleWrapper = $('role-select-wrapper');
+    const roleTrigger = $('role-select-trigger');
+    const roleDropdown = $('role-select-dropdown');
+    const rolePlaceholder = $('role-select-placeholder');
+    const allRoleCheckboxes = document.querySelectorAll('#role-select-dropdown .roleChk');
+    const selectAllCheckbox = $('role-select-all');
+
+    function updateChips() { /* ... giữ nguyên ... */ 
+        roleTrigger.querySelectorAll('.role-chip').forEach(chip => chip.remove());
+        const selected = [...document.querySelectorAll('#role-select-dropdown .roleChk:checked')];
+        
+        if (selected.length === 0) {
+            rolePlaceholder.classList.remove('hidden');
+        } else {
+            rolePlaceholder.classList.add('hidden');
+            selected.forEach(chk => {
+                const chip = document.createElement('span');
+                chip.className = 'role-chip';
+                const labelText = chk.parentElement.textContent.trim().split(' ').slice(1).join(' ');
+                chip.innerHTML = `${labelText} <button class="role-chip-remove" data-value="${chk.value}">&times;</button>`;
+                roleTrigger.insertBefore(chip, rolePlaceholder);
+            });
+        }
+    }
+    roleTrigger.addEventListener('click', (e) => { /* ... giữ nguyên ... */ 
+        if (e.target.classList.contains('role-chip-remove')) return; 
+        roleDropdown.classList.toggle('hidden');
+    });
+    roleTrigger.addEventListener('click', (e) => { /* ... giữ nguyên ... */ 
+        if (e.target.classList.contains('role-chip-remove')) {
+            e.stopPropagation(); 
+            const value = e.target.dataset.value;
+            const checkbox = document.querySelector(`#role-select-dropdown .roleChk[value="${value}"]`);
+            if (checkbox) {
+                checkbox.checked = false;
+                checkbox.dispatchEvent(new Event('change')); 
+            }
+        }
+    });
+    document.addEventListener('click', (e) => { /* ... giữ nguyên ... */ 
+        if (!roleWrapper.contains(e.target)) {
+            roleDropdown.classList.add('hidden');
+        }
+    });
+    selectAllCheckbox.addEventListener('change', () => { /* ... giữ nguyên ... */ 
+        allRoleCheckboxes.forEach(chk => {
+            chk.checked = selectAllCheckbox.checked;
+        });
+        updateChips();
+        buildPrompt();
+    });
+    allRoleCheckboxes.forEach(chk => { /* ... giữ nguyên ... */ 
+        chk.addEventListener('change', () => {
+            updateChips();
+            buildPrompt();
+            const allChecked = [...allRoleCheckboxes].every(c => c.checked);
+            selectAllCheckbox.checked = allChecked;
+        });
+    });
+
+    // ===== LOGIC CHO TOGGLE KIỂU ĐẦU RA =====
+    const outputModeToggle = $('output-mode-toggle');
+    outputModeToggle.addEventListener('click', (e) => { /* ... giữ nguyên ... */ 
+        if (e.target.classList.contains('toggle-btn')) {
+            outputModeToggle.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.setAttribute('aria-pressed', 'false');
+            });
+            e.target.setAttribute('aria-pressed', 'true');
+            buildPrompt(); 
+        }
+    });
+    // =======================================
+
+
+    // Attachments to base64
+    let attached=[], attachInput=$("attach"), attachList=$("attachList");
+    attachInput.addEventListener("change", async (e)=>{ /* ... giữ nguyên ... */ 
+      const files=[...e.target.files];
+      for(const f of files){
+        const b64 = await fileToBase64(f);
+        attached.push({name:f.name, data:b64});
+      }
+      renderAttach();
+      // Bỏ saveDraft()
+      buildPrompt();
+      attachInput.value=null;
+    });
+    function renderAttach(){ /* ... giữ nguyên ... */ 
+      attachList.innerHTML="";
+      attached.forEach((f,idx)=>{
+        const div=document.createElement("div");
+        div.className="flex items-center justify-between text-gray-700";
+        div.innerHTML=`<span class="truncate">${f.name}</span>
+        <div class="flex items-center gap-2">
+          <a class="text-blue-600 underline" href="${f.data}" target="_blank">Xem</a>
+          <button data-i="${idx}" class="rm text-red-600">Xoá</button>
+        </div>`;
+        attachList.appendChild(div);
+      });
+      attachList.querySelectorAll(".rm").forEach(btn=>btn.onclick=(e)=>{ const i=+e.target.dataset.i; attached.splice(i,1); renderAttach(); /* Bỏ saveDraft() */ buildPrompt(); });
+    }
+    function fileToBase64(file){ /* ... giữ nguyên ... */ 
+      return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(file); });
+    }
+
+    // Tabs (Schema)
+    document.querySelectorAll(".tab-btn").forEach(btn=>{ /* ... giữ nguyên ... */ 
+      btn.addEventListener("click",()=>{
+        document.querySelectorAll(".tab-btn").forEach(b=>b.setAttribute("aria-selected","false"));
+        btn.setAttribute("aria-selected","true");
+        const tab=btn.dataset.tab;
+        document.querySelectorAll("#panels > section").forEach(sec=>sec.classList.toggle("hidden", sec.id!==tab));
+      })
+    });
+    
+    // Fill schemas (cập nhật r1-r7)
+    $("schema_r1").value = roleTabDisplay.r1; 
+    $("schema_r2").value = roleTabDisplay.r2;
+    $("schema_r3").value = roleTabDisplay.r3;
+    $("schema_r4").value = roleTabDisplay.r4; 
+    $("schema_r5").value = roleTabDisplay.r5;
+    $("schema_r6").value = roleTabDisplay.r6;
+    $("schema_r7").value = roleTabDisplay.r7;
+
+    // Build dataset JSON (bỏ Glucose)
+    function dataset(){ 
+      const d={
+        patient:{ name:val("ho_ten"), age:int("tuoi"), sex:val("gioi_tinh") },
+        anthropometry:{ weight_kg: num("cn"), height_cm: num("cc"), BMI: num("bmi") },
+        chief_complaint: val("ly_do_vao_vien"),
+        history_present_illness: val("benh_su"),
+        past_history:{ personal: val("ts_bt"), family: val("ts_gd") },
+        vitals:{ HR: val("mach"), BP: val("huyet_ap"), RR: val("nhip_tho"), Temp: val("nhiet_do"), SpO2: val("spo2") },
+        physical_exam:{ general: val("kham_tt"), systemic: val("kham_cq") },
+        labs_and_tests: val("cls"),
+        summary_text: val("tom_tat"),
+        attachments_info: attached.map(a=>a.name).join(", ")
+      };
+      return d;
+    }
+    const val=(id)=>($(id)?.value||"").trim();
+    const int=(id)=>parseInt($(id)?.value||"0",10)||0;
+    const num=(id)=>parseFloat($(id)?.value||"")||"";
+
+    // ===== HÀM XÂY DỰNG PROMPT (CẬP NHẬT PROMPT TỰ NHIÊN VÀ HEADER) =====
+    function buildPrompt(){ 
+      const mode = document.querySelector('#output-mode-toggle .toggle-btn[aria-pressed="true"]').dataset.value;
+      const chosen = [...document.querySelectorAll('#role-select-dropdown .roleChk:checked')].map(chk => chk.value);
+      
+      const dataObj = dataset();
+      const dataForPrompt = JSON.parse(JSON.stringify(dataObj));
+      delete dataForPrompt.patient.name; 
+      const data = JSON.stringify(dataForPrompt, null, 2);
+
+      // ===== CẬP NHẬT HEADER (PHƯƠNG ÁN 2) =====
+      const header = `Bạn là Trợ lý lâm sàng AI, chỉ dựa trên dữ kiện cung cấp. Luôn đánh giá mức độ chắc chắn, cung cấp lập luận (gồm bằng chứng ủng hộ/chống lại) và nêu bật các cảnh báo khẩn cấp.`;
+      
+      let req = "";
+      const natural = (t)=>`Viết báo cáo ngắn gọn theo thứ tự hợp lý, ${t}.\nKhông xuất JSON.`;
+      
+      if(mode==="json"){
+        const parts = [];
+        if (chosen.includes("r1")) parts.push(roleSchemaFragments.r1);
+        if (chosen.includes("r2")) parts.push(roleSchemaFragments.r2);
+        if (chosen.includes("r3")) parts.push(roleSchemaFragments.r3);
+        if (chosen.includes("r4")) parts.push(roleSchemaFragments.r4);
+        if (chosen.includes("r5")) parts.push(roleSchemaFragments.r5);
+        if (chosen.includes("r6")) parts.push(roleSchemaFragments.r6);
+        if (chosen.includes("r7")) parts.push(roleSchemaFragments.r7);
+
+        if (parts.length > 0) {
+            const combinedSchema = `{\n${parts.join(',\n')}\n}`;
+            req = `🎯 YÊU CẦU (trả về MỘT JSON DUY NHẤT)\nChỉ trả lời bằng một đối tượng JSON duy nhất tuân thủ theo schema sau (chỉ bao gồm các key đã được chọn):\n\n${combinedSchema}`;
+        } else {
+            req = `🎯 YÊU CẦU (trả về JSON)\n(Không có vai trò JSON nào được chọn. Vui lòng trả về một JSON rỗng: {})`;
+        }
+      } else {
+        // Cập nhật yêu cầu tự nhiên: Vai trò 1 gợi ý, Vai trò 4 phân tích + tiên lượng chung
+        req = "🎯 YÊU CẦU (báo cáo tự nhiên)\n" + natural("ưu tiên rõ ràng: tóm tắt & mức độ nặng → CĐPB (Pro/Con, %) → Hỗ trợ CĐ & CĐ nguy hiểm → cờ đỏ → thiếu dữ liệu → CLS → tiên lượng chung → phân tích chi tiết thang điểm (tính toán, ý nghĩa, thiếu sót) → mục tiêu, can thiệp, phác đồ điều trị → theo dõi nội/ngoại trú → tư vấn & tiến trình hồi phục → rà soát an toàn ca bệnh"); 
+      }
+      
+      const prompt = `${header}
+
+=========================
+📋 DỮ LIỆU BỆNH ÁN (đã ẩn danh)
+=========================
+${data}
+
+${req}`.trim();
+      $("promptBox").value = prompt;
+      return prompt;
+    }
+
+    // Save/load (LocalStorage) - ĐÃ SỬA LỖI QUOTA
+    function saveDraft(){ /* ... giữ nguyên ... */ 
+      const rec = {...dataset(), _ts: Date.now()}; 
+      const all = JSON.parse(localStorage.getItem("medicalRecords_v3")||"[]");
+      all.unshift(rec);
+      localStorage.setItem("medicalRecords_v3", JSON.stringify(all.slice(0,200)));
+    }
+    function loadRecord(rec){ /* ... giữ nguyên ... */ 
+      $("ho_ten").value=rec.patient?.name||"";
+      $("tuoi").value=rec.patient?.age||"";
+      $("gioi_tinh").value=rec.patient?.sex||"Nam";
+      $("cn").value=rec.anthropometry?.weight_kg||"";
+      $("cc").value=rec.anthropometry?.height_cm||"";
+      $("bmi").value=rec.anthropometry?.BMI||"";
+      $("ly_do_vao_vien").value=rec.chief_complaint||"";
+      $("benh_su").value=rec.history_present_illness||"";
+      $("ts_bt").value=rec.past_history?.personal||"";
+      $("ts_gd").value=rec.past_history?.family||"";
+      $("mach").value=rec.vitals?.HR||"";
+      $("nhiet_do").value=rec.vitals?.Temp||"";
+      $("huyet_ap").value=rec.vitals?.BP||"";
+      $("nhip_tho").value=rec.vitals?.RR||"";
+      $("spo2").value=rec.vitals?.SpO2||"";
+      // Bỏ glucose
+      $("kham_tt").value=rec.physical_exam?.general||"";
+      $("kham_cq").value=rec.physical_exam?.systemic||"";
+      $("cls").value=rec.labs_and_tests||"";
+      $("tom_tat").value=rec.summary_text||"";
+      attached = []; 
+      renderAttach();
+      
+      buildPrompt();
+      updateChips();
+    }
+
+    // ====== HÀNH ĐỘNG CÁC NÚT BẤM ======
+    
+    // NÚT CHÍNH: SAO CHÉP PROMPT & LƯU 
+    $("btnCopyPromptAndSave").onclick = () => { /* ... giữ nguyên ... */ 
+        if (!val("ho_ten")) {
+            alert("Vui lòng nhập họ tên bệnh nhân để lưu.");
+            $("ho_ten").focus();
+            return;
+        }
+        const promptContent = buildPrompt(); 
+        if (!promptContent) return alert("Chưa có nội dung prompt để sao chép.");
+        navigator.clipboard.writeText(promptContent).then(() => {
+            saveDraft(); 
+            alert("Đã sao chép prompt và lưu!");
+        }).catch(err => {
+            alert("Lỗi khi sao chép: " + err);
+        });
+    };
+    
+    // NÚT MỚI: XUẤT TXT (CHỈ XUẤT)
+    $("btnExportTxtOnly").onclick = () => { /* ... giữ nguyên ... */ 
+        const name=(val("ho_ten")||"benh_an").replace(/\s+/g,"_");
+        const age=val("tuoi")||"x";
+        const promptContent = buildPrompt(); 
+        if (!promptContent) return alert("Chưa có nội dung prompt để xuất.");
+        download(`${name}_${age}_prompt.txt`, promptContent);
+    };
+    
+    // Nút Tra cứu
+    $("btnSearch").onclick = ()=> openSearch();
+    
+    // Nút Xoá Form
+    $("resetAll").onclick = () => { /* ... giữ nguyên ... */ 
+        if (!confirm("Bạn có chắc muốn xoá toàn bộ form?")) return;
+        fields.forEach(id => $(id).value = "");
+        attached = [];
+        renderAttach();
+        allRoleCheckboxes.forEach(chk => chk.checked = false);
+        selectAllCheckbox.checked = false;
+        updateChips();
+        buildPrompt();
+    };
+
+    // LOGIC CÁC NÚT EXPORT KHÁC
+    // Nút Sao chép prompt trong Tab
+    $("btnCopyPromptTab").onclick = ()=>{ const v=$("promptBox").value; if(!v) return alert("Chưa có nội dung."); navigator.clipboard.writeText(v).then(()=>alert("Đã sao chép!")); };
+    // Nút Xuất TXT trong Cấu hình (đã bỏ)
+    $("btnExportJSON").onclick = ()=>{ /* ... giữ nguyên ... */ 
+      const name=(val("ho_ten")||"benh_an").replace(/\s+/g,"_");
+      const age=val("tuoi")||"x";
+      download(`${name}_${age}_dataset.json`, JSON.stringify(dataset(),null,2));
+    };
+    $("btnImportJSON").onclick = ()=>{ /* ... giữ nguyên ... */ 
+      const inp=document.createElement("input"); inp.type="file"; inp.accept="application/json";
+      inp.onchange=async (e)=>{
+        const file=e.target.files[0]; if(!file) return;
+        const txt=await file.text(); try{ const obj=JSON.parse(txt); obj._attached=obj._attached||[]; loadRecord(obj); alert("Đã nhập JSON."); }catch(err){ alert("JSON không hợp lệ: "+err.message); }
+      };
+      inp.click();
+    };
+
+    // Result viewer
+    $("btnRender").onclick = ()=>{ /* ... giữ nguyên ... */ 
+      const raw=$("aiJSON").value.trim(); if(!raw) return alert("Chưa dán JSON.");
+      let obj; try{ obj=JSON.parse(raw) }catch(e){ return alert("JSON không hợp lệ: "+e.message); }
+      renderAI(obj);
+    };
+    $("btnClearJsonInput").onclick = ()=>{ $("aiJSON").value=""; $("rendered").innerHTML=""; }; 
+    
+    // Nút Hiển thị và Xoá cho Free Text
+    $("btnShowFree").onclick = ()=>{ $("freeOut").innerHTML = escapeHTML($("aiFree").value).replace(/\n/g,"<br>"); };
+    $("btnClearFreeInput").onclick = ()=>{ $("aiFree").value=""; $("freeOut").innerHTML=""; }; // Nút Xoá Free Text MỚI
+
+    // ===== SỬA LỖI TOGGLE =====
+    const viewModeToggle = $('view-mode-toggle');
+    viewModeToggle.addEventListener('click', (e) => { 
+        if (e.target.classList.contains('toggle-btn')) {
+            // SỬA LỖI: Đổi 'outputModeToggle' thành 'viewModeToggle'
+            viewModeToggle.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.setAttribute('aria-pressed', 'false');
+            });
+            e.target.setAttribute('aria-pressed', 'true');
+            const mode = e.target.dataset.value;
+            $("viewJSON").classList.toggle("hidden", mode !== 'json');
+            $("viewFree").classList.toggle("hidden", mode !== 'free');
+        }
+    });
+    // ===========================
+
+    // ===== HÀM RENDER JSON (ĐÃ NÂNG CẤP TOÀN DIỆN R1-R7) =====
+    function renderAI(ai){ 
+      const box=$("rendered"); box.innerHTML="";
+      
+      // Render R1 (ĐÃ NÂNG CẤP)
+      if(ai.summary || ai.differential_diagnosis || ai.red_flags || ai.overall_severity){
+        let summaryHtml = "";
+        
+        // Thêm Bối cảnh và Mức độ nặng
+        if(ai.assumed_context) {
+            summaryHtml += `<p class="text-sm"><b>Bối cảnh giả định:</b> <span class="font-medium text-blue-600">${escapeHTML(ai.assumed_context)}</span></p>`;
+        }
+        if(ai.overall_severity) {
+            const levelClass = (ai.overall_severity.level || '').toLowerCase().includes('nghiêm trọng') || (ai.overall_severity.level || '').toLowerCase().includes('đe dọa') ? 'text-red-600 font-bold' : 'font-medium';
+            summaryHtml += `<p class="text-sm"><b>Mức độ nặng:</b> <span class="${levelClass}">${escapeHTML(ai.overall_severity.level || 'N/A')}</span> (${escapeHTML(ai.overall_severity.reason || '...')})</p>`;
+        }
+        if(ai.summary) {
+            summaryHtml += `<hr class="my-2"><p>${escapeHTML(ai.summary)}</p>`;
+        }
+        card("📝 Tóm tắt & Nhận định", summaryHtml || "<p class='text-sm text-gray-500'>—</p>");
+        
+        // Giữ nguyên thứ tự render các card còn lại
+        if(ai.red_flags) listCard("🚨 Cờ đỏ", ai.red_flags, 'text-red-600');
+        if(ai.differential_diagnosis) ddxCard("🔍 Chẩn đoán phân biệt (Pro/Con)", ai.differential_diagnosis); // ddxCard đã được cập nhật
+        if(ai.missing_data) listCard("🧩 Thiếu dữ liệu (chung)", ai.missing_data); 
+        if(ai.recommended_tests) listCard("🧪 Cận lâm sàng nên làm", ai.recommended_tests);
+        if(ai.suggested_scores) listCard("📏 Thang điểm gợi ý (khác)", ai.suggested_scores); 
+        if(ai.management_suggestions) listCard("🩺 Gợi ý xử trí", ai.management_suggestions);
+      }
+      
+      // Render R2 (ĐÃ NÂNG CẤP)
+      if(ai.dds_diagnoses || ai.most_critical_diagnosis_to_rule_out){
+          let html = "";
+          
+          // Logic từ ddsCard cũ
+          const dx = ai.dds_diagnoses;
+          const conf = ai.dds_overall_confidence;
+          const list=(dx||[]).map(d=>{
+            const p = Math.round((d.prob??0)*100);
+            const why = Array.isArray(d.why) ? d.why.join("; ") : (d.why||"");
+            const refs = Array.isArray(d.guideline_refs) ? d.guideline_refs.map(r => `<i>${escapeHTML(r)}</i>`).join(', ') : '';
+            return `<div class="mb-2 p-2 border rounded">
+                <div class="flex justify-between">
+                    <div class="font-medium">${escapeHTML(d.label||"—")}</div>
+                    <div class="min-w-[120px]">
+                        <div class="probbar"><div style="width:${p}%"></div></div>
+                        <div class="text-xs text-gray-500 mt-1">${p}%</div>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-600 mt-1">${escapeHTML(why)}</div>
+                ${refs ? `<div class="text-xs text-gray-500 mt-1">Ref: ${refs}</div>` : ''}
+            </div>`;
+          }).join("");
+          html += list;
+          if(typeof conf==="number"){ html += `<div class="mt-2"><div class="text-sm font-medium mb-1">📊 Độ tin cậy tổng thể</div><div class="probbar"><div style="width:${Math.round(Math.max(0,Math.min(1,conf))*100)}%"></div></div></div>`; }
+          
+          // Thêm các trường R2 mới
+          if(ai.most_critical_diagnosis_to_rule_out) {
+              html += `<div class="mt-3 pt-2 border-t"><div class="text-sm font-medium text-red-700">⚠️ Cần loại trừ ngay</div><ul class="list-disc pl-5 text-sm"><li>${escapeHTML(ai.most_critical_diagnosis_to_rule_out)}</li></ul></div>`;
+          }
+          if(ai.differentiation_plan) {
+              html += listify("🧭 Kế hoạch phân biệt", ai.differentiation_plan, "mt-2");
+          }
+          
+          card("🧠 Hỗ trợ Chẩn đoán (DDS)", html);
+      }
+      
+      // Render R3 (ĐÃ NÂNG CẤP)
+      if(ai.treatment_plan){
+        let html = `<p class="text-sm"><b>Bối cảnh:</b> ${escapeHTML(ai.treatment_plan.context||"")}</p>`;
+        html += listify("🎯 Mục tiêu điều trị:", ai.treatment_plan.treatment_goals);
+        html += listify("🧘 Can thiệp không dùng thuốc:", ai.treatment_plan.non_pharmacological_interventions, "mt-2");
+        
+        html += "<div class='mt-2'><b class='text-sm'>💊 Phác đồ (Thuốc):</b><ul class='list-disc pl-5 text-sm'>";
+        (ai.treatment_plan.pharmacological_recommendations || []).forEach(r => {
+            html += `<li>${escapeHTML(r.drug||"")} ${escapeHTML(r.dose||"")} ${escapeHTML(r.route||"")} ${escapeHTML(r.frequency||"")} (${escapeHTML(r.duration||"")})</li>`;
+        });
+        html += "</ul></div>";
+        
+        html += listify("🔄 Phương án thay thế:", ai.treatment_plan.alternative_options, "mt-2");
+        html += listify("⛔ Chống chỉ định:", ai.treatment_plan.contraindications, "mt-2");
+        html += listify("📊 Theo dõi (Hiệu quả/ADR):", ai.treatment_plan.monitoring_adr, "mt-2");
+        html += `<p class="text-sm mt-2"><b>🩺 Chỉnh liều:</b> ${escapeHTML(ai.treatment_plan.adjustments||"")}</p>`;
+        
+        card("💊 Kế hoạch điều trị", html);
+      }
+      
+      // Render R4 (ĐÃ NÂNG CẤP)
+      if(ai.general_prognosis || ai.prognosis_and_scores){
+        let html = "";
+        if (ai.general_prognosis) {
+            html += `<p class="text-sm"><b>Ngắn hạn:</b> ${escapeHTML(ai.general_prognosis.short_term || 'N/A')}</p>`;
+            html += `<p class="text-sm"><b>Dài hạn:</b> ${escapeHTML(ai.general_prognosis.long_term || 'N/A')}</p><hr class="my-2">`;
+        }
+        
+        html += (ai.prognosis_and_scores || []).map(s => {
+            let scoreInfo = s.calculation_possible 
+                ? `<b>Điểm: ${s.calculated_score ?? 'N/A'}</b> (${s.risk_category || 'Chưa phân loại'})`
+                : '<i class="text-gray-500">Không đủ dữ liệu để tính</i>';
+            
+            // Thêm ý nghĩa lâm sàng
+            let implicationHtml = s.score_implication ? `<div class="text-sm font-semibold text-blue-600 mt-2">${escapeHTML(s.score_implication)}</div>` : '';
+            
+            let componentsList = (s.components || []).map(c => `<li><b>${c.component}:</b> ${escapeHTML(c.description || '')}</li>`).join('');
+            let componentsHtml = componentsList ? `<div class="text-xs text-gray-600 mt-1"><b>Thành phần:</b><ul class="list-disc pl-5">${componentsList}</ul></div>` : '';
+
+            let rangeHtml = s.score_range_interpretation ? `<div class="text-xs text-gray-600 mt-1"><b>Diễn giải:</b> ${escapeHTML(s.score_range_interpretation)}</div>` : '';
+            
+            // Thêm nguồn
+            let refHtml = s.reference ? `<div class="text-xs text-gray-500 mt-1"><i>Ref: ${escapeHTML(s.reference)}</i></div>` : '';
+
+            let missingList = (s.missing_data_detailed || []).map(m => `<li><b>${m.component}:</b> ${escapeHTML(m.data_needed || '')}</li>`).join('');
+            let missingHtml = (!s.calculation_possible && missingList)
+                ? `<div class="text-xs text-orange-600 mt-1"><b>Dữ liệu thiếu để tính điểm:</b><ul class="list-disc pl-5">${missingList}</ul></div>`
+                : '';
+                
+            let suggestionsHtml = (!s.calculation_possible && s.suggestions_for_missing?.length > 0)
+                ? `<div class="text-xs text-blue-600 mt-1"><b>Đề xuất:</b><ul class="list-disc pl-5">${s.suggestions_for_missing.map(sug => `<li>${escapeHTML(sug)}</li>`).join('')}</ul></div>`
+                : '';
+
+            return `<div class="mb-2 p-2 border rounded">
+                <div class="font-medium">${escapeHTML(s.score_name||"—")}</div>
+                <div class="text-xs text-gray-600 mt-1"><i>${escapeHTML(s.purpose || "")}</i></div>
+                ${componentsHtml}
+                ${rangeHtml}
+                ${refHtml}
+                <div class="text-sm font-semibold text-gray-700 mt-2">${scoreInfo}</div>
+                ${implicationHtml}
+                ${missingHtml}
+                ${suggestionsHtml}
+            </div>`;
+        }).join("");
+        card("📈 Tiên lượng & Thang điểm", html || "<p class='text-sm text-gray-500'>—</p>");
+      }
+      
+      // Render R5 (ĐÃ NÂNG CẤP)
+      if(ai.follow_up_plan){ 
+        let html = "";
+        if (ai.follow_up_plan.inpatient_monitoring && (ai.follow_up_plan.inpatient_monitoring.parameters?.length > 0 || ai.follow_up_plan.inpatient_monitoring.frequency)) {
+            const ip = ai.follow_up_plan.inpatient_monitoring;
+            html += `<div class="mb-2">
+                <div class="text-sm font-medium">Theo dõi (Nội trú)</div>
+                <ul class='list-disc pl-5 text-sm'>
+                    ${(ip.parameters || []).map(x => `<li>${escapeHTML(String(x))}</li>`).join("") || "<li>Không có chỉ số cụ thể</li>"}
+                </ul>
+                <p class="text-xs text-gray-600 mt-1"><b>Tần suất:</b> ${escapeHTML(ip.frequency || 'N/A')}</p>
+                <p class="text-xs text-gray-600"><b>Mục đích:</b> ${escapeHTML(ip.purpose || 'N/A')}</p>
+            </div>`;
+        }
+        
+        if (ai.follow_up_plan.outpatient_follow_up && (ai.follow_up_plan.outpatient_follow_up.revisit_schedule || ai.follow_up_plan.outpatient_follow_up.referral_criteria)) {
+            const op = ai.follow_up_plan.outpatient_follow_up;
+            html += `<div class="mt-2 pt-2 border-t">
+                <div class="text-sm font-medium">Theo dõi (Ngoại trú)</div>
+                <p class="text-sm mt-1"><b>Tái khám:</b> ${escapeHTML(op.revisit_schedule||"")}</p>
+                ${(op.tests_on_revisit && op.tests_on_revisit.length > 0) ? listify("Xét nghiệm khi tái khám:", op.tests_on_revisit, "text-sm") : ''}
+                <p class="text-sm mt-1"><b>Tiêu chí nhập viện/chuyển tuyến:</b> ${escapeHTML(op.referral_criteria||"")}</p>
+            </div>`;
+        }
+        card("🗓️ Kế hoạch theo dõi", html || "<p class='text-sm text-gray-500'>—</p>");
+      }
+      
+      // Render R6 (ĐÃ NÂNG CẤP)
+      if(ai.patient_education){ 
+        let html = `<p class="text-sm mt-1"><b>Bệnh học:</b> ${escapeHTML(ai.patient_education.disease_info||"")}</p>`;
+        html += `<p class="text-sm mt-1"><b>Thuốc:</b> ${escapeHTML(ai.patient_education.medication_guidance||"")}</p>`;
+        html += listify("Lối sống:", ai.patient_education.lifestyle_modifications, "mt-2");
+        html += `<p class="text-sm mt-2"><b>Tiến trình hồi phục:</b> ${escapeHTML(ai.patient_education.expected_recovery_timeline||"")}</p>`;
+        html += `<p class="text-sm mt-2"><b>Khi nào quay lại:</b> ${escapeHTML(ai.patient_education.when_to_return||"")}</p>`;
+        html += listify("Câu hỏi Teach-back (gợi ý):", ai.patient_education.teach_back_questions, "mt-2");
+        card("🎓 Giáo dục bệnh nhân", html);
+      }
+      
+      // Render R7 (ĐÃ NÂNG CẤP)
+      if(ai.case_specific_safety_review){
+        const r = ai.case_specific_safety_review;
+        let html = "<ul class='list-disc pl-5 text-sm space-y-1'>";
+        html += `<li><b>Dị ứng:</b> ${escapeHTML(r.allergy_check || 'N/A')}</li>`;
+        html += `<li><b>Tương tác:</b> ${escapeHTML(r.interaction_check || 'N/A')}</li>`;
+        html += `<li><b>Chỉnh liều (Thận/Gan):</b> ${escapeHTML(r.renal_adjustment_check || 'N/A')}</li>`;
+        html += `<li><b>Thiếu sót nguy hiểm:</b> ${escapeHTML(r.critical_omissions_check || 'N/A')}</li>`;
+        html += "</ul>";
+        card("🛡️ Rà soát An toàn (Ca bệnh)", html);
+      }
+      
+      if(ai.disclaimer) { /* ... giữ nguyên ... */ 
+          $("rendered").appendChild(document.createElement("hr"));
+          const p = document.createElement("p");
+          p.className = "text-xs italic text-gray-500";
+          p.textContent = ai.disclaimer;
+          $("rendered").appendChild(p);
+      }
+    }
+    
+    // ===== THAY ĐỔI GIAO DIỆN: Thêm nền trắng và bóng cho card =====
+    function card(title, html){ const d=document.createElement("div"); d.className="p-3 border rounded bg-white shadow-sm"; d.innerHTML=`<h4 class="font-semibold mb-1">${title}</h4>${html}`; $("rendered").appendChild(d); }
+    
+    function listCard(title, arr, liClass=''){ /* ... giữ nguyên ... */ card(title, "<ul class='list-disc pl-5 text-sm'>" + (arr||[]).map(x=>`<li class="${liClass}">${escapeHTML(String(x))}</li>`).join("") + "</ul>"); }
+    
+    // ===== HÀM NÂNG CẤP: ddxCard (Render Pro/Con) =====
+    function ddxCard(title, arr){ 
+      const html=(arr||[]).map(d=>{
+        const p = Math.round((d.likelihood??0)*100);
+        
+        // Render evidence_for (pro)
+        const pros = (d.evidence_for || []).map(e => `<li>${escapeHTML(e)}</li>`).join('');
+        const prosHtml = pros ? `<div class="text-xs text-green-700 mt-1"><b>(+) Ủng hộ:</b><ul class="list-disc pl-5">${pros}</ul></div>` : '';
+        
+        // Render evidence_against (con)
+        const cons = (d.evidence_against || []).map(e => `<li>${escapeHTML(e)}</li>`).join('');
+        const consHtml = cons ? `<div class="text-xs text-red-700 mt-1"><b>(-) Chống lại:</b><ul class="list-disc pl-5">${cons}</ul></div>` : '';
+
+        return `<div class="mb-2 p-2 border rounded">
+          <div class="flex justify-between">
+            <div class="font-medium">${escapeHTML(d.label||"—")}</div>
+            <div class="min-w-[120px]">
+              <div class="probbar"><div style="width:${p}%"></div></div>
+              <div class="text-xs text-gray-500 mt-1">${p}%</div>
+            </div>
+          </div>
+          ${prosHtml}
+          ${consHtml}
+        </div>`;
+      }).join("");
+      card(title, html || "<p class='text-sm text-gray-500'>—</p>");
+    }
+    
+    // ===== HÀM ĐÃ BỊ XÓA: ddsCard (đã tích hợp vào renderAI) =====
+    
+    function listify(title, arr, extraClass=''){ /* ... giữ nguyên ... */ return `<div class="${extraClass}"><div class="text-sm font-medium">${title}</div><ul class='list-disc pl-5 text-sm'>${(arr||[]).map(x=>`<li>${escapeHTML(String(x))}</li>`).join("")}</ul></div>`; }
+
+    // Search (giữ nguyên)
+    function openSearch(){ /* ... giữ nguyên ... */ 
+      $("searchModal").classList.remove("hidden");
+      renderSearch("");
+    }
+    $("closeSearch").onclick = ()=>$("searchModal").classList.add("hidden");
+    $("searchInput").addEventListener("input",(e)=>renderSearch(e.target.value));
+    function renderSearch(keyword){ /* ... giữ nguyên ... */ 
+      const box=$("searchList"); box.innerHTML="";
+      const all = JSON.parse(localStorage.getItem("medicalRecords_v3")||"[]");
+      const list = all.filter(r=>(r.patient?.name||"").toLowerCase().includes((keyword||"").toLowerCase()));
+      if(list.length===0){ box.innerHTML="<p class='text-sm text-gray-500'>Không tìm thấy.</p>"; return; }
+      list.slice(0,100).forEach((r,i)=>{
+        const row=document.createElement("div"); row.className="p-2 border rounded flex justify-between items-center";
+        const when = new Date(r._ts||Date.now()).toLocaleString();
+        row.innerHTML=`<div><div class="font-medium">${escapeHTML(r.patient?.name||"(Không tên)")}</div>
+        <div class="text-xs text-gray-500">${when}</div></div>
+        <div class="flex gap-2">
+          <button class="px-3 py-1 rounded-md text-white bg-blue-600 load">Tải</button>
+          <button class="px-3 py-1 rounded-md bg-red-50 border border-red-300 text-red-700 rm">Xoá</button>
+        </div>`;
+        row.querySelector(".load").onclick=()=>{ loadRecord(r); $("searchModal").classList.add("hidden"); };
+        row.querySelector(".rm").onclick=()=>{ const all2=all.filter(x=>x!==r); localStorage.setItem("medicalRecords_v3", JSON.stringify(all2)); renderSearch(keyword); };
+        box.appendChild(row);
+      });
+    }
+
+    // Helpers
+    function download(filename, content){ /* ... giữ nguyên ... */ 
+      const blob = new Blob([content], {type:"text/plain;charset=utf-8"});
+      const a = document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download=filename; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }
+    function escapeHTML(s){ /* ... giữ nguyên ... */ 
+      return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); 
+    }
+    
+    // === THÊM HÀM BỎ DẤU TIẾNG VIỆT ===
+    function removeVietnameseTones(str) {
+        str = str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        str = str.replace(/đ/g, 'd').replace(/Đ/g, 'D');
+        return str;
+    }
+    // ===================================
+    
+    // LOGIC ẨN/HIỆN TAB OUTPUT (CỘT PHẢI)
+    document.getElementById("output-tab-nav").addEventListener("click", (e) => { /* ... giữ nguyên ... */ 
+        if (e.target.classList.contains("output-tab-btn")) {
+            document.querySelectorAll("#output-tab-nav .output-tab-btn").forEach(btn => {
+                btn.setAttribute("aria-selected", "false");
+            });
+            e.target.setAttribute("aria-selected", "true");
+            
+            const panelId = e.target.dataset.panel;
+            document.querySelectorAll(".output-panel").forEach(panel => {
+                panel.classList.toggle("hidden", panel.id !== panelId);
+            });
+        }
+    });
+
+    // ===== THAY ĐỔI: THAY THẾ TOÀN BỘ LOGIC XUẤT/XEM TRƯỚC PDF =====
+    
+    // === Xem trước PDF (mở bản HTML sạch trong tab mới) ===
+    $("btnPreviewPdf").onclick = () => {
+      const renderedContent = $("rendered");
+      if (!renderedContent || renderedContent.innerHTML.trim() === "") { 
+        alert("Chưa có kết quả để xem trước."); 
+        return; 
+      }
+      
+      // 1. Lấy nội dung đã được định dạng A4
+      const contentToExport = prepareExportNode(renderedContent);
+      
+      // 2. Mở cửa sổ mới
+      const win = window.open("");
+      if (!win) {
+        alert("Không thể mở cửa sổ xem trước. Vui lòng cho phép pop-up.");
+        return;
+      }
+
+      // 3. Ghi toàn bộ cấu trúc HTML (bao gồm cả Tailwind CSS) vào cửa sổ đó
+      win.document.open();
+      win.document.write(`
+        <!DOCTYPE html>
+        <html lang="vi">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Xem trước Kết quả Phân tích</title>
+          
+          <script src="https://cdn.tailwindcss.com"><\/script> 
+          
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+          
+          <style>
+            /* Thêm một chút nền xám cho dễ nhìn, và font chữ */
+            body { 
+              font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+              background-color: #f3f4f6; /* Nền xám nhạt */
+              padding: 20px; /* Thêm padding để nội dung không dính sát viền */
+            }
+          </style>
+        </head>
+        <body>
+          ${contentToExport.outerHTML}
+        </body>
+        </html>
+      `);
+      win.document.close();
+    };
+
+    // ===== Xuất PDF (đã tinh chỉnh) =====
+    $("btnExportPdf").onclick = () => {
+      const renderedContent = $("rendered");
+      if (!renderedContent || renderedContent.innerHTML.trim() === "") {
+        alert("Chưa có kết quả để xuất PDF.");
+        return;
+      }
+      // Sử dụng helper để lấy node đã được làm đẹp
+      const contentToExport = prepareExportNode(renderedContent);
+
+      const patientNameRaw = val("ho_ten") || "KetQua";
+      const patientNameNoTones = removeVietnameseTones(patientNameRaw).replace(/\s+/g, '_');
+      const patientAge = val("tuoi") || "X";
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+      const filename = `${patientNameNoTones}_${patientAge}_${timestamp}.pdf`;
+
+      // Sử dụng options đã được tinh chỉnh từ file tuned
+      const options = {
+        margin: 10,
+        filename,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3, logging: false, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      html2pdf().set(options).from(contentToExport).save().catch(err => {
+        console.error("Lỗi khi xuất PDF:", err);
+        alert("Đã xảy ra lỗi khi tạo file PDF: " + err.message);
+      });
+    };
+
+    // ===== Helper: dựng node sạch để export PDF/Preview (từ file tuned) =====
+    function prepareExportNode(renderedContent){
+      const contentToExport = renderedContent.cloneNode(true);
+      contentToExport.classList.remove('grid','md:grid-cols-2','gap-3');
+
+      // Khung trang A4 đẹp, căn giữa
+      contentToExport.style.maxWidth = '700px';
+      contentToExport.style.margin = '0 auto';
+      contentToExport.style.padding = '20px';
+      contentToExport.style.border = '1px solid #ddd';
+      contentToExport.style.borderRadius = '10px';
+      contentToExport.style.background = '#fff';
+
+      // Tiêu đề & thông tin hành chính
+      const headerWrap = document.createElement('div');
+      const title = document.createElement('h1');
+      title.textContent = `PHIẾU PHÂN TÍCH BỆNH ÁN`;
+      title.style.textAlign = 'center';
+      title.style.fontSize = '1.4em';
+      title.style.fontWeight = '700';
+      title.style.marginBottom = '6px';
+      const info = document.createElement('p');
+      info.innerHTML = `
+        <b>Bệnh nhân:</b> ${escapeHTML(val("ho_ten")) || '—'} |
+        <b>Tuổi:</b> ${escapeHTML(val("tuoi")) || '—'} |
+        <b>Giới tính:</b> ${escapeHTML(val("gioi_tinh")) || '—'}<br>
+        <i>Xuất ngày:</i> ${new Date().toLocaleString('vi-VN')}
+      `;
+      info.style.fontSize = '12px';
+      info.style.textAlign = 'center';
+      info.style.marginBottom = '10px';
+      headerWrap.appendChild(title);
+      headerWrap.appendChild(info);
+      contentToExport.insertBefore(headerWrap, contentToExport.firstChild);
+
+      // Bo góc & tránh cắt card
+      contentToExport.querySelectorAll(':scope > div.p-3.border.rounded').forEach(card => {
+        card.style.marginBottom = '10px';
+        card.style.pageBreakInside = 'avoid';
+        card.style.background = '#fff'; // Giữ nền trắng cho card
+      });
+
+      // Footer
+      const footer = document.createElement('div');
+      footer.innerHTML = `<hr style="margin:12px 0;">
+      <p style="font-size:10px; text-align:center; color:#666">
+      Tài liệu được tạo bởi Trợ lý Y khoa v1.1 by dr.dungtiensinh · ${new Date().toLocaleDateString('vi-VN')}
+      </p>`;
+      contentToExport.appendChild(footer);
+
+      return contentToExport;
+    }
+    // ========================================================
+    
+
+    const aboutModal = $("aboutModal");
+    const openAboutBtn = $("btnAbout");
+    const closeAboutBtns = [$("closeAbout"), $("closeAboutBtn")];
+
+    openAboutBtn.onclick = () => aboutModal.classList.remove("hidden");
+    closeAboutBtns.forEach(btn => {
+        btn.onclick = () => aboutModal.classList.add("hidden");
+    });
+    // ===================================
+
+    // Init
+    buildPrompt();
+    updateChips(); 
+    selectAllCheckbox.checked = [...allRoleCheckboxes].every(c => c.checked);
+
+  </script>
+</body>
+</html>
