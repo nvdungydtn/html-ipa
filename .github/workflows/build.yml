@@ -8,15 +8,37 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Create IPA
+      - name: Create IPA structure
         run: |
-          mkdir build
-          zip -r build/app.ipa web
+          mkdir -p Payload/WebApp.app
+          cp -r web/* Payload/WebApp.app/
+
+          cat > Payload/WebApp.app/Info.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+          "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+          <key>CFBundleExecutable</key>
+          <string>WebApp</string>
+          <key>CFBundleIdentifier</key>
+          <string>com.example.webapp</string>
+          <key>CFBundleName</key>
+          <string>WebApp</string>
+          <key>CFBundleVersion</key>
+          <string>1.0</string>
+          <key>CFBundleShortVersionString</key>
+          <string>1.0</string>
+          </dict>
+          </plist>
+          EOF
+
+          zip -r app.ipa Payload
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: ipa
-          path: build/app.ipa
+          path: app.ipa
